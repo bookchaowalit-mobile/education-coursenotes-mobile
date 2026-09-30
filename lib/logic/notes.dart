@@ -17,7 +17,25 @@ class Note {
   final String topic;
   final String body;
   final DateTime createdAt;
+
+  Map<String, Object?> toJson() => {
+        'id': id,
+        'course': course,
+        'topic': topic,
+        'body': body,
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  static Note fromJson(Map<String, Object?> json) => Note(
+        id: json['id'] as int,
+        course: json['course'] as String,
+        topic: json['topic'] as String,
+        body: json['body'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+      );
 }
+
+Map<String, Object?> noteToJson(Note note) => note.toJson();
 
 String? validateNote({
   required String course,

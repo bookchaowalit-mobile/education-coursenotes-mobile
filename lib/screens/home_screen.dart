@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../data/list_repository.dart';
+import '../data/note_repository.dart';
 import '../logic/notes.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.clock = DateTime.now});
+  const HomeScreen({super.key, this.clock = DateTime.now, this.repository});
 
   final DateTime Function() clock;
+
+  /// Where notes are stored. Defaults to an in-memory store (tests); the app
+  /// passes [deviceNoteRepository].
+  final NoteRepository? repository;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -16,6 +22,48 @@ class _HomeScreenState extends State<HomeScreen> {
   final _search = TextEditingController();
   String? _topic;
   int _nextId = 1;
+  late final NoteRepository _repository =
+      widget.repository ?? InMemoryListRepository<Note>();
+  bool _loading = true;
+  String? _storageError;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final saved = await _repository.load();
+      if (!mounted) return;
+      setState(() {
+        _notes
+          ..clear()
+          ..addAll(saved);
+        _nextId = saved.fold(0, (m, n) => n.id > m ? n.id : m) + 1;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _storageError = 'Saved notes could not be read.';
+      });
+    }
+  }
+
+  Future<void> _persist() async {
+    try {
+      await _repository.save(List.of(_notes));
+      if (mounted && _storageError != null) {
+        setState(() => _storageError = null);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _storageError = 'Could not save notes on this device.');
+    }
+  }
 
   @override
   void dispose() {
@@ -33,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _notes.add(note);
       _nextId++;
     });
+    await _persist();
   }
 
   void _delete(Note note) {
@@ -40,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _notes.remove(note);
       if (_topic != null && !topicsOf(_notes).contains(_topic)) _topic = null;
     });
+    _persist();
   }
 
   @override
@@ -81,7 +131,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           const SizedBox(height: 8),
-          if (_notes.isEmpty)
+          if (_storageError != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                _storageError!,
+                key: const Key('storage-error'),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_notes.isEmpty)
             const Padding(
               padding: EdgeInsets.all(24),
               child: Text(

@@ -2,10 +2,14 @@ import 'package:coursenotes/main.dart';
 import 'package:coursenotes/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   testWidgets('app shell shows notes and about tab', (tester) async {
     await tester.pumpWidget(const CoursenotesApp());
+    await tester.pumpAndSettle();
     expect(find.text('Coursenotes'), findsWidgets);
     await tester.tap(find.text('About'));
     await tester.pumpAndSettle();
@@ -14,6 +18,7 @@ void main() {
 
   testWidgets('add, search and delete a note', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpAndSettle();
     expect(find.textContaining('No notes yet'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('add-note')));
