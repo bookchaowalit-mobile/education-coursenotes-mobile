@@ -87,9 +87,38 @@ class _HomeScreenState extends State<HomeScreen> {
   void _delete(Note note) {
     setState(() {
       _notes.remove(note);
-      if (_topic != null && !topicsOf(_notes).contains(_topic)) _topic = null;
+      _syncTopic();
     });
     _persist();
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('Deleted "${note.topic}" note'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            if (!mounted || _notes.contains(note)) return;
+            setState(() => _notes.add(note));
+            _persist();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Keeps the topic filter when another note still has that topic (in any
+  /// letter case) and re-points it at the spelling shown on the chip.
+  void _syncTopic() {
+    final current = _topic;
+    if (current == null) return;
+    if (!hasTopic(_notes, current)) {
+      _topic = null;
+      return;
+    }
+    _topic = topicsOf(_notes).firstWhere(
+      (t) => t.toLowerCase() == current.toLowerCase(),
+    );
   }
 
   @override
@@ -233,11 +262,13 @@ class _NoteDialogState extends State<_NoteDialog> {
               key: const Key('course-field'),
               controller: _course,
               decoration: const InputDecoration(labelText: 'Course'),
+              textInputAction: TextInputAction.next,
             ),
             TextField(
               key: const Key('topic-field'),
               controller: _topic,
               decoration: const InputDecoration(labelText: 'Topic'),
+              textInputAction: TextInputAction.next,
             ),
             TextField(
               key: const Key('body-field'),
@@ -249,9 +280,14 @@ class _NoteDialogState extends State<_NoteDialog> {
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    _error!,
+                    key: const Key('note-error'),
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
                 ),
               ),
           ],

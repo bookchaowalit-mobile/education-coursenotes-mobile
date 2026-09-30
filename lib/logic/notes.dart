@@ -1,6 +1,10 @@
 /// Pure note model and search/filter helpers.
 library;
 
+import 'package:characters/characters.dart';
+
+const noteBodyMax = 5000;
+
 class Note {
   Note({
     required this.id,
@@ -45,7 +49,10 @@ String? validateNote({
   if (course.trim().isEmpty) return 'Course is required';
   if (topic.trim().isEmpty) return 'Topic is required';
   if (body.trim().isEmpty) return 'Note text is required';
-  if (body.trim().length > 5000) return 'Note must be at most 5000 characters';
+  // Count grapheme clusters so emoji and Thai combining marks count once.
+  if (body.trim().characters.length > noteBodyMax) {
+    return 'Note must be at most $noteBodyMax characters';
+  }
   return null;
 }
 
@@ -83,4 +90,11 @@ List<Note> searchNotes(Iterable<Note> notes,
       return c != 0 ? c : b.id.compareTo(a.id);
     });
   return result;
+}
+
+/// Whether [topic] is still one of the topics in [notes] (case-insensitive),
+/// so an active filter survives deleting the note that set its spelling.
+bool hasTopic(Iterable<Note> notes, String topic) {
+  final wanted = topic.toLowerCase();
+  return notes.any((n) => n.topic.toLowerCase() == wanted);
 }

@@ -2,7 +2,7 @@
 
 ## Current state
 
-Score: 7/10 — core feature with tested pure-Dart logic, notes persist on device behind a tested repository, honest CI and fail-closed release signing; still no app icon or E2E flow.
+Score: 7.5/10 — persisted notes with search/filter, undoable delete, unicode-correct limits, a11y guideline tests and fail-closed signing; no edit/export, icon or E2E flow yet.
 
 ## Backlog
 
@@ -17,10 +17,18 @@ Score: 7/10 — core feature with tested pure-Dart logic, notes persist on devic
 - Add a CI job that builds a signed release bundle from repository secrets (keystore decoded at runtime, never committed).
 
 ### P2
-- Tablet layout (NavigationRail) and 130% text-scale widget test.
+- Tablet layout (NavigationRail).
 - Localisation (Thai/English) for UI strings.
 
-## Done in this pass (pass 2)
+## Done in this pass (pass 3)
+
+- Bug fix: with topics "Graphs" and "graphs", deleting the note whose spelling was on the selected chip silently cleared the filter (exact-match check against case-insensitive topics). The filter now survives and follows the remaining spelling (`hasTopic`).
+- Bug fix: the 5000-character note limit counted UTF-16 code units (emoji counted twice); it now counts visible characters (`characters`, now a direct dependency).
+- Error state: deleting a note shows an "Undo" snack bar that restores it; the dialog's validation error is a live region; course/topic fields move focus with "next".
+- Edge-case unit tests: emoji/whitespace limits, whitespace-only and tab/newline queries, Thai/emoji search, same-timestamp ordering, empty collections, JSON round trip with unicode.
+- Widget tests: undo, filter-after-delete, cancel, a11y guidelines (tap target, labels, contrast), 200% text scale.
+
+## Done in pass 2
 
 - Release builds no longer sign with the debug key: `android/app/build.gradle.kts` reads the ignored `android/key.properties` and a Gradle guard fails any release assemble/bundle without it (pattern from `bookchaowalit-goal-tracker-mobile`). Root `.gitignore` also ignores `key.properties`, `*.jks`, `*.keystore`; README documents the setup. Not build-verified here (no Android SDK/Gradle in this environment).
 - Notes now persist on device: `lib/data/list_repository.dart` (`ListRepository` interface, `shared_preferences` JSON implementation that skips malformed records, in-memory implementation for tests); the home screen loads on start, saves after add/delete and shows an error line when storage fails.
