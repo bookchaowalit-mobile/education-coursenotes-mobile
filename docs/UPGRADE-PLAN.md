@@ -27,6 +27,7 @@ Score: 7.5/10 — persisted notes with search/filter, undoable delete, unicode-c
 - Error state: deleting a note shows an "Undo" snack bar that restores it; the dialog's validation error is a live region; course/topic fields move focus with "next".
 - Edge-case unit tests: emoji/whitespace limits, whitespace-only and tab/newline queries, Thai/emoji search, same-timestamp ordering, empty collections, JSON round trip with unicode.
 - Widget tests: undo, filter-after-delete, cancel, a11y guidelines (tap target, labels, contrast), 200% text scale.
+- The 200% text-scale widget test now runs at a 360 px phone width (it previously used the 800 px default test surface); no overflow found.
 
 ## Done in pass 2
 
