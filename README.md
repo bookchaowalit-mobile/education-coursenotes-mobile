@@ -4,6 +4,24 @@ Keep short study notes per course and find them again quickly.
 
 Part of [Chaowalit Greepoke](https://bookchaowalit.com)'s 101 Portfolio Projects.
 
+## Canonical Flutter template
+
+This repo **is the canonical Flutter (Material 3) template** in
+`bookchaowalit-mobile`. The following repos are name-substituted copies of
+this scaffold; fixes land here first and are then copied per repo (each repo
+owns its code, no shared package):
+
+- community-guestbook-mobile, games-game-collection-mobile,
+  marketing-contact-forms-mobile, productivity-ideas-mobile,
+  commerce-digital-products-mobile, community-donation-tip-jar-mobile,
+  devtools-design-mobile, devtools-devhub-mobile, devtools-error-logs-mobile,
+  marketing-deeplinks-mobile, marketing-giveaways-mobile
+- devtools-github-mobile (bare scaffold of the same shape, no app logic yet)
+
+Consolidation or archiving of the copies is pending owner decision D5
+(BD-033), see `repository-catalog/portfolio/MOBILE-CONSOLIDATION-2026-10.md`
+in solo-empire. Product scope: [PRODUCT.md](PRODUCT.md).
+
 ## Features
 
 - Add notes with course, topic and body
@@ -32,8 +50,11 @@ flutter test
 flutter run
 ```
 
-CI (`.github/workflows/build.yml`) runs the same format/analyze/test checks
-and fails closed; a debug APK is built on pushes to `main`.
+CI (`.github/workflows/build.yml`) pins Flutter in the workflow `env`,
+resolves dependencies with `flutter pub get --enforce-lockfile`, runs the same
+format/analyze/test checks (all fail closed) plus the shared
+`platform-ci-workflows` `security.yml` scan, and on pushes to `main` builds a
+debug APK uploaded as a `NOT-FOR-STORE` artifact.
 
 ## Build
 
